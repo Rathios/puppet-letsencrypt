@@ -99,9 +99,9 @@ define letsencrypt::certonly (
     'webroot': {
       $_plugin_args = zip($domains, $webroot_paths).map |$domain| {
         if $domain[1] {
-          "--webroot-path ${domain[1]} -d ${domain[0]}"
+          "--webroot-path ${domain[1]} -d '${domain[0]}'"
         } else {
-          "-d ${domain[0]}"
+          "-d '${domain[0]}'"
         }
       }
       $plugin_args = ["--cert-name ${title}"] + $_plugin_args
@@ -119,8 +119,8 @@ define letsencrypt::certonly (
 
     default: {
       if $ensure == 'present' {
-        $_plugin_args = join($domains, ' -d ')
-        $plugin_args  = "--cert-name ${title} -d ${_plugin_args}"
+        $_plugin_args = join($domains, '\' -d \'')
+        $plugin_args  = "--cert-name ${title} -d '${_plugin_args}'"
       } else {
         $plugin_args = "--cert-name ${title}"
       }
