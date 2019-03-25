@@ -109,9 +109,10 @@ define letsencrypt::certonly (
 
     'dns-rfc2136': {
       require letsencrypt::plugin::dns_rfc2136
+      $_domains = join($domains, '\' -d \'')
       $plugin_args = [
         "--cert-name ${title} -d",
-        join($domains, ' -d '),
+        "'${_domains}'",
         "--dns-rfc2136-credentials ${letsencrypt::plugin::dns_rfc2136::config_dir}/dns-rfc2136.ini",
         "--dns-rfc2136-propagation-seconds ${letsencrypt::plugin::dns_rfc2136::propagation_seconds}",
       ]
@@ -119,8 +120,8 @@ define letsencrypt::certonly (
 
     default: {
       if $ensure == 'present' {
-        $_plugin_args = join($domains, '\' -d \'')
-        $plugin_args  = "--cert-name ${title} -d '${_plugin_args}'"
+        $_domains = join($domains, '\' -d \'')
+        $plugin_args  = "--cert-name ${title} -d '${_domains}'"
       } else {
         $plugin_args = "--cert-name ${title}"
       }
@@ -158,12 +159,12 @@ define letsencrypt::certonly (
   $command = join($_command, ' ')
 
   $execution_environment = [ "VENV_PATH=${letsencrypt::venv_path}", ] + $environment
-  $verify_domains = join(unique($domains), ' ')
+  $verify_domains = join(unique($domains), '\' \'')
 
   if $ensure == 'present' {
-    $exec_ensure = { 'unless' => "/usr/local/sbin/letsencrypt-domain-validation ${live_path} ${verify_domains}" }
+    $exec_ensure = { 'unless' => "/usr/local/sbin/letsencrypt-domain-validation ${live_path} '${verify_domains}'" }
   } else {
-    $exec_ensure = { 'onlyif' => "/usr/local/sbin/letsencrypt-domain-validation ${live_path} ${verify_domains}" }
+    $exec_ensure = { 'onlyif' => "/usr/local/sbin/letsencrypt-domain-validation ${live_path} '${verify_domains}'" }
   }
 
   exec { "letsencrypt certonly ${title}":
